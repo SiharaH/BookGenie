@@ -3,9 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import Spinner from '../Spinner';
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = false;
-  const loading = false;
   const location = useLocation();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return <Spinner />; 

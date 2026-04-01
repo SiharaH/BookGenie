@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Menu, X, User, LogOut, BookOpen } from 'lucide-react';
+import ProfileDropdown from './ProfileDropdown';
 
 const Navbar = () => {
   const {user, logout, isAuthenticated} = useAuth();
