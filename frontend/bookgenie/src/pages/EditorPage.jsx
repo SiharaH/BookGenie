@@ -53,25 +53,152 @@ const EditorPage = () => {
    setBook(prev => ({...prev, [name]: value}))
   }
 
-  const handleChapterChange = (e) => {};
+  const handleChapterChange = (e) => {
+    const { name, value } = e.target;
+    const updatedChapters = [...book.chapters];
+    updatedChapters[selectedChapterIndex][name] = value;
+    setBook(prev => ({...prev, chapters: updatedChapters}))
+  };
 
-  const handleAddChapter = () => {};
+  const handleAddChapter = () => {
+    const newChapter = {
+      title : `Chapter ${book.chapters.length + 1}`,
+      content: "",
+    }
+    const updatedChapters = [...book.chapters, newChapter]
+    setBook(prev => ({...prev, chapters: updatedChapters}))
+    setSelectedChapterIndex(updatedChapters.length - 1)
+  };
 
-  const handleDeleteChapter = (index) => {};
+  const handleDeleteChapter = (index) => {
+    if(book.chapters.length <= 1) {
+      toast.error("A book must have at least one chapter")
+      return;
+    }
+    const updatedChapters = book.chapters.filter((_, i) => i !== index)
+    setBook(prev => ({...prev, chapters: updatedChapters}));
+    setSelectedChapterIndex((prevIndex) => 
+    prevIndex >= index ? Math.max(0, prevIndex - 1) : prevIndex
+    );
+  };
 
-  const handleReorderChapters = (oldIndex, newIndex) => {};
+  const handleReorderChapters = (oldIndex, newIndex) => {
+    setBook(prev => ({...prev, chapters: arrayMove(prev.chapters, oldIndex, newIndex)}));
+    setSelectedChapterIndex(newIndex); // Set the selected chapter consistent after reorder
+  };
 
-  const handleSaveChanges = async(bookToSave = book, showToast = true) => {};
+  const handleSaveChanges = async(bookToSave = book, showToast = true) => {
+    setIsSaving(true)
+    try {
+      await axiosInstance.put(`${API_PATHS.BOOKS.UPDATE_BOOK}/${bookId}`, bookToSave)
+      if(showToast) {
+        toast.success("Changes saved successfully")
+      }
+    } catch (error) {
+      console.log("Error", error)
+      toast.error("Failed to save changes")
+    } finally {
+      setIsSaving(false)
+    }
+  };
 
-  const handleCoverImageUpload = async(e) => {};
+  const handleCoverImageUpload = async(e) => {
+    const file = e.target.files[0]
+    if(!file) return;
+    const formData = new FormData()
+    formData.append("coverImage", file)
+    setIsUploading(true)
 
-  const handleGenerateOutline = async() => {};
+    try {
+      const response = await axiosInstance.put(`${API_PATHS.BOOKS.UPDATE_COVER}/${bookId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+      setBook(response.data)
+      toast.success("Cover image updated successfully")
+    } catch (error) {
+      console.log("Error uploading cover image", error)
+      toast.error("Failed to upload cover image")
+    } finally {
+      setIsUploading(false)
+    }
+  };
 
-  const handleGenerateChapterContent = async(index) => {};
+  const handleGenerateChapterContent = async(index) => {
+    const chapter = book.chapters[index]
+    if(!chapter || !chapter.title) {
+      toast.error("Chapter title is required to generate content")
+      return;
+    }
+    setIsGenerating(index)
+    try {
+      const response = await axiosInstance.post(API_PATHS.AI.GENERATE_CHAPTER_CONTENT, {
+        chapterTitle: chapter.title,
+        chapterDescription: chapter.description || "",
+        style: aiStyle,
+      });
+      const updatedChapters = [...book.chapters];
+      updatedChapters[index].content = response.data.content;
 
-  const handleExportPDF = async() => {};
+      const updatedBook = {...book, chapters: updatedChapters}
+      setBook(updatedBook)
+      toast.success(`Content for "${chapter.title}" generated!`)
 
-  const handleExportDoc = async() => {};
+      await handleSaveChanges(updatedBook, false) // Auto-save after generating content without showing toast
+    } catch (error) {
+      console.log("Error generating chapter content", error)
+      toast.error("Failed to generate chapter content")
+    } finally {
+      setIsGenerating(false)
+    }
+  };
+
+  const handleExportPDF = async() => {
+    toast.loading("Generating PDF...");
+      try {
+        const response = await axiosInstance.get(`${API_PATHS.EXPORT.PDF}/${bookId}/pdf`, {
+          responseType: "blob"
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${book.title || "book"}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.dismiss()
+        toast.success("PDF exported successfully")
+      } catch (error) {
+        console.log("Error generating PDF", error)
+        toast.dismiss()
+        toast.error("Failed to generate PDF")
+      }
+  };
+
+  const handleExportDoc = async() => {
+    toast.loading("Generating Document...");
+      try {
+        const response = await axiosInstance.get(`${API_PATHS.EXPORT.DOC}/${bookId}/doc`, {
+          responseType: "blob"
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${book.title || "book"}.docx`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.dismiss()
+        toast.success("Document exported successfully")
+      } catch (error) {
+        console.log("Error generating Document", error)
+        toast.dismiss()
+        toast.error("Failed to generate Document")
+      }
+  };
 
   if(isLoading || !book) {
     return (
