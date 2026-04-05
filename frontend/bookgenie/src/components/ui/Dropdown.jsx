@@ -29,7 +29,7 @@ const Dropdown = ({ trigger, children }) => {
       tabIndex='-1'
       >
         <div className='py-1' role='none'>
-          {Children}
+          {children}
         </div>
         
       </div>

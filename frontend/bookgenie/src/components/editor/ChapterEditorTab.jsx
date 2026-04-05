@@ -90,7 +90,7 @@ const ChapterEditorTab = ({
     const currentChapter = book.chapters[selectedChapterIndex];
             
   return (
-    <div className={`${isFullScreen ? "fixed inset-0 z-50 bg-white" : "flex-1"}flex flex-col`}>
+    <div className={`${isFullScreen ? "fixed inset-0 z-50 bg-white" : "flex-1"} flex flex-col`}>
         {/* Header */}
         <div className='border-b border-gray-100 bg-white '>
             <div className='px-8 py-6'>
@@ -182,9 +182,9 @@ const ChapterEditorTab = ({
                                     ) : (
                                     <div className='h-full'>
                                     <SimpleMDEditor
-                                        value={currentChapter.content || ""}
-                                        onChange={(value) => onChapterChange({target: {name: "content", value}})}
-                                        options={mdeOptions}
+                                        value={typeof currentChapter.content === "string" ? currentChapter.content : ""}
+                                        onChange={(value) => onChapterChange({target: {name: "content", value: value || ""}})}
+                                        options={mdeOptions} 
                                     />
                                 </div>
                                 )}

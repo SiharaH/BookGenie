@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, use } from "react"
+import { useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import {Sparkles, FileDown, Save, Menu, X, Edit, NotebookText, ChevronDown, FileText} from "lucide-react"
@@ -87,20 +87,21 @@ const EditorPage = () => {
     setSelectedChapterIndex(newIndex); // Set the selected chapter consistent after reorder
   };
 
-  const handleSaveChanges = async(bookToSave = book, showToast = true) => {
-    setIsSaving(true)
-    try {
-      await axiosInstance.put(`${API_PATHS.BOOKS.UPDATE_BOOK}/${bookId}`, bookToSave)
-      if(showToast) {
-        toast.success("Changes saved successfully")
-      }
-    } catch (error) {
-      console.log("Error", error)
-      toast.error("Failed to save changes")
-    } finally {
-      setIsSaving(false)
+  const handleSaveChanges = async (bookToSave = book, showToast = true) => {
+  setIsSaving(true);
+  try {
+    await axiosInstance.put(`${API_PATHS.BOOKS.UPDATE_BOOK}/${bookId}`, bookToSave);
+
+    if (showToast) {
+      toast.success("Changes saved successfully");
     }
-  };
+  } catch (error) {
+    console.error("Error saving book:", error);
+    toast.error("Failed to save changes");
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const handleCoverImageUpload = async(e) => {
     const file = e.target.files[0]
@@ -288,17 +289,18 @@ const EditorPage = () => {
                   Export
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
-              }>
-                <DropdownItem onClick={handleExportPDF}>
+              }
+              >
+                <DropdownItem onClick={() => handleExportPDF()}>
                   <FileText className="w-4 h-4 mr-2 text-slate-500" />
                   Export as PDF
                 </DropdownItem>
-                <DropdownItem onClick={handleExportDoc}>
+                <DropdownItem onClick={() => handleExportDoc()}>
                   <FileText className="w-4 h-4 mr-2 text-slate-500" />
                   Export as Document
                 </DropdownItem>
               </Dropdown>
-              <Button onClick={handleSaveChanges} isLoading={isSaving} icon={Save}>
+              <Button onClick={() => handleSaveChanges()} isLoading={isSaving} icon={Save}>
                 Save Changes
               </Button>
             </div>
@@ -316,7 +318,7 @@ const EditorPage = () => {
             ) : (
               <BookDetailsTab book={book} 
               onBookChange={handleBookChange} 
-              onCoverImageUpload={handleCoverImageUpload}
+              onCoverUpload={handleCoverImageUpload}
               isUploading={isUploading}
               fileInputRef={fileInputRef}
               />

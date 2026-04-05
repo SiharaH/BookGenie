@@ -37,9 +37,8 @@ const SimpleMDEditor = ({
                 commands.orderedListCommand,
                 commands.checkedListCommand,
             ]}
-            hideMenu={true}
         />
-      </div>
+      </div>    
     </div>
   );
 };
